@@ -62,7 +62,11 @@ body {
   inset: 0;
   z-index: -1;
   pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease;
 }
+
+body.show-stars .stars { opacity: 1; }
 
 .weather-fx {
   position: fixed;

@@ -188,10 +188,11 @@ function tempText(c) {
   return state.unit === 'f' ? Math.round(toF(c)) : Math.round(c);
 }
 
-function applyTheme(theme, isNight) {
+function applyTheme(theme, isNight, showStars = false) {
   document.body.className = '';
   if (isNight) document.body.classList.add('theme-night');
   else if (theme) document.body.classList.add('theme-' + theme);
+  document.body.classList.toggle('show-stars', showStars);
 }
 
 // ---------- Stars ----------
@@ -262,11 +263,13 @@ function render() {
   const isDay = cur.is_day === 1;
   const info = WMO[code] || { label: 'Unknown', icon: 'cloud', theme: 'cloudy' };
   const iconKey = (info.icon === 'sun' && !isDay) ? 'moon' : info.icon;
+  const useNightTheme = !isDay && (info.theme === 'sunny' || info.theme === 'cloudy' || info.theme === 'foggy');
+  const showStars = !isDay && info.theme === 'sunny';
 
-  applyTheme(info.theme, !isDay && (info.theme === 'sunny' || info.theme === 'cloudy' || info.theme === 'foggy'));
+  applyTheme(info.theme, useNightTheme, showStars);
 
   // Activate rain/snow particle FX
-  weatherFx.setMode(getWeatherFxMode(info.theme));
+  weatherFx.setMode(getWeatherFxMode(info.theme, isDay));
 
   // Location + time
   const placeName = state.place?.name || '—';
@@ -974,15 +977,81 @@ const weatherFx = (() => {
     };
   }
 
+  function drawMoonGlow() {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    ctx.clearRect(0, 0, w, h);
+
+    const cx = w * 0.78;
+    const cy = h * 0.15;
+    const r = 34;
+
+    const glowGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 220);
+    glowGrad.addColorStop(0, 'rgba(241, 245, 249, 0.12)');
+    glowGrad.addColorStop(0.35, 'rgba(191, 219, 254, 0.08)');
+    glowGrad.addColorStop(1, 'rgba(191, 219, 254, 0)');
+    ctx.fillStyle = glowGrad;
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(241, 245, 249, 0.88)';
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(cx + 14, cy - 4, r * 0.92, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    ctx.globalCompositeOperation = 'source-over';
+
+    for (const p of particles) {
+      p.y -= p.speed;
+      p.x += Math.sin(p.wobble) * p.wobbleAmp;
+      p.wobble += p.wobbleSpeed;
+      p.life += p.lifeSpeed;
+
+      const alpha = p.baseOpacity * Math.sin(p.life);
+      if (p.y < -10 || alpha < 0) {
+        p.y = h + 10;
+        p.x = Math.random() * w;
+        p.life = 0;
+      }
+
+      if (alpha > 0) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(191, 219, 254, ${Math.max(0, alpha)})`;
+        ctx.fill();
+      }
+    }
+  }
+
+  function createMoonMote() {
+    return {
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      r: 1 + Math.random() * 2,
+      speed: 0.08 + Math.random() * 0.18,
+      baseOpacity: 0.08 + Math.random() * 0.14,
+      wobble: Math.random() * Math.PI * 2,
+      wobbleSpeed: 0.004 + Math.random() * 0.008,
+      wobbleAmp: 0.2 + Math.random() * 0.45,
+      life: Math.random() * Math.PI,
+      lifeSpeed: 0.006 + Math.random() * 0.008,
+    };
+  }
+
   // --- Particle init ---
   const configs = {
-    sunny:  { count: 40,  factory: createSunMote,     draw: drawSunRays,           storm: false },
-    rain:   { count: 200, factory: createRainDrop,     draw: drawRain,              storm: false },
-    storm:  { count: 250, factory: createRainDrop,     draw: drawRainWithLightning, storm: true  },
-    snow:   { count: 120, factory: createSnowflake,    draw: drawSnow,              storm: false },
-    clouds: { count: 18,  factory: createCloudWisp,    draw: drawClouds,            storm: false },
-    fog:    { count: 25,  factory: createFogLayer,     draw: drawFog,               storm: false },
-    hail:   { count: 180, factory: createHailstone,    draw: drawHail,              storm: false },
+    sunny:     { count: 40,  factory: createSunMote,   draw: drawSunRays,           storm: false },
+    moonlight: { count: 28,  factory: createMoonMote,  draw: drawMoonGlow,          storm: false },
+    rain:      { count: 200, factory: createRainDrop,  draw: drawRain,              storm: false },
+    storm:     { count: 250, factory: createRainDrop,  draw: drawRainWithLightning, storm: true  },
+    snow:      { count: 120, factory: createSnowflake, draw: drawSnow,              storm: false },
+    clouds:    { count: 18,  factory: createCloudWisp, draw: drawClouds,            storm: false },
+    fog:       { count: 25,  factory: createFogLayer,  draw: drawFog,               storm: false },
+    hail:      { count: 180, factory: createHailstone, draw: drawHail,              storm: false },
   };
 
   function initParticles(type) {
@@ -996,7 +1065,7 @@ const weatherFx = (() => {
     for (let i = 0; i < cfg.count; i++) {
       const p = cfg.factory();
       // Spread particles across screen initially
-      if (type !== 'clouds' && type !== 'fog' && type !== 'sunny') {
+      if (type !== 'clouds' && type !== 'fog' && type !== 'sunny' && type !== 'moonlight') {
         p.y = Math.random() * window.innerHeight;
       }
       particles.push(p);
@@ -1037,8 +1106,8 @@ const weatherFx = (() => {
 })();
 
 // Map weather theme to FX mode
-function getWeatherFxMode(theme) {
-  if (theme === 'sunny') return 'sunny';
+function getWeatherFxMode(theme, isDay) {
+  if (theme === 'sunny') return isDay ? 'sunny' : 'moonlight';
   if (theme === 'rainy') return 'rain';
   if (theme === 'stormy') return 'storm';
   if (theme === 'snowy') return 'snow';
