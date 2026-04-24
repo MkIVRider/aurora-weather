@@ -1,13 +1,17 @@
 {
+  "id": "/aurora-weather/",
   "name": "Aurora — Premium Weather",
   "short_name": "Aurora",
-  "description": "A premium weather dashboard with live conditions, forecasts, and animated weather effects",
+  "description": "A premium animated weather dashboard with live forecasts, glassmorphic UI, dynamic weather effects, and 7-day forecasts. Zero dependencies.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
   "orientation": "any",
+  "dir": "ltr",
+  "lang": "en-US",
   "background_color": "#0a0e27",
   "theme_color": "#0a0e27",
+  "categories": ["weather", "utilities"],
   "icons": [
     {
       "src": "./icon-192.png",
@@ -32,6 +36,22 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Aurora Weather Dashboard"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Aurora Weather Mobile"
     }
   ]
 }
