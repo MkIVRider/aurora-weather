@@ -29,6 +29,7 @@ body {
   padding: 2rem;
   min-height: 100vh;
   position: relative;
+  isolation: isolate;
 }
 
 /* ---------- Aurora ---------- */
@@ -66,7 +67,7 @@ body {
   transition: opacity 0.6s ease;
 }
 
-body.show-stars .stars { opacity: 1; }
+body.show-stars .stars { opacity: 0.9; }
 
 .weather-fx {
   position: fixed;
@@ -87,10 +88,11 @@ body.show-stars .stars { opacity: 1; }
   border-radius: 50%;
   opacity: 0;
   animation: twinkle 4s infinite;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
 }
 @keyframes twinkle {
   0%, 100% { opacity: 0; }
-  50%      { opacity: 0.9; }
+  50%      { opacity: 1; }
 }
 
 /* ---------- Topbar ---------- */
