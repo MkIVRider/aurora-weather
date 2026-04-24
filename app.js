@@ -88,6 +88,24 @@ const icons = {
       <circle cx="42" cy="42" r="18" fill="url(#pcSun)"/>
       <path d="M30 78 Q30 62 48 62 Q52 52 64 52 Q82 52 84 68 Q98 68 98 82 Q98 92 88 92 L38 92 Q30 92 30 82 Z" fill="url(#pcCloud)"/>
     </svg>`,
+  'partly-cloud-night': (size = 120) => `
+    <svg viewBox="0 0 120 120" width="${size}" height="${size}">
+      <defs>
+        <radialGradient id="pcMoonGlow" cx="50%" cy="50%" r="60%">
+          <stop offset="0%" stop-color="#f8fafc"/>
+          <stop offset="100%" stop-color="#bfdbfe"/>
+        </radialGradient>
+        <linearGradient id="pcNightCloud" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#e2e8f0"/>
+          <stop offset="100%" stop-color="#94a3b8"/>
+        </linearGradient>
+      </defs>
+      <g>
+        <circle cx="44" cy="42" r="18" fill="url(#pcMoonGlow)" opacity="0.95"/>
+        <circle cx="52" cy="38" r="18" fill="#0f172a"/>
+      </g>
+      <path d="M30 78 Q30 62 48 62 Q52 52 64 52 Q82 52 84 68 Q98 68 98 82 Q98 92 88 92 L38 92 Q30 92 30 82 Z" fill="url(#pcNightCloud)"/>
+    </svg>`,
   cloud: (size = 120) => `
     <svg viewBox="0 0 120 120" width="${size}" height="${size}">
       <defs>
@@ -160,6 +178,11 @@ const uvLabel = u => u < 3 ? 'Low' : u < 6 ? 'Moderate' : u < 8 ? 'High' : u < 1
 const visLabel = km => km >= 10 ? 'Excellent' : km >= 5 ? 'Good' : km >= 2 ? 'Moderate' : 'Poor';
 const formatTime = (date, tz) => date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: tz });
 const formatLocalDate = (date, tz) => date.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', timeZone: tz });
+const resolveIconKey = (icon, isDay) => {
+  if (icon === 'sun' && !isDay) return 'moon';
+  if (icon === 'partly-cloud' && !isDay) return 'partly-cloud-night';
+  return icon;
+};
 
 // Open-Meteo returns times in the location's timezone but WITHOUT a timezone suffix.
 // We need to parse them as if they were in `tz`, not the browser's local time.
@@ -262,7 +285,7 @@ function render() {
   const code = cur.weather_code;
   const isDay = cur.is_day === 1;
   const info = WMO[code] || { label: 'Unknown', icon: 'cloud', theme: 'cloudy' };
-  const iconKey = (info.icon === 'sun' && !isDay) ? 'moon' : info.icon;
+  const iconKey = resolveIconKey(info.icon, isDay);
   const useNightTheme = !isDay && (info.theme === 'sunny' || info.theme === 'cloudy' || info.theme === 'foggy');
   const showStars = !isDay && info.theme === 'sunny';
 
@@ -363,7 +386,7 @@ function renderHourly(d) {
     const dt = new Date(t);
     const hour = dt.toLocaleTimeString('en-US', { hour: 'numeric', timeZone: tz });
     const info = WMO[codes[i]] || WMO[3];
-    const iconKey = (info.icon === 'sun' && !isDays[i]) ? 'moon' : info.icon;
+    const iconKey = resolveIconKey(info.icon, isDays[i]);
     return `
       <div class="hour">
         <div class="hour-time">${i === 0 ? 'Now' : hour}</div>
