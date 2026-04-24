@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Aurora — Premium Weather</title>
+<meta name="theme-color" content="#0a0e27" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Aurora" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="aurora">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="blob blob-4"></div>
+  </div>
+  <canvas class="weather-fx" id="weatherFx"></canvas>
+  <div class="stars" id="stars"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+          <circle cx="12" cy="12" r="4" />
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">AURORA</span>
+        <span class="brand-sub">Premium Weather</span>
+      </div>
+    </div>
+
+    <div class="search-wrap">
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input id="searchInput" type="text" placeholder="Search any city in the world..." autocomplete="off" spellcheck="false" />
+        <button class="geo-btn" id="geoBtn" title="Use my location">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <circle cx="12" cy="12" r="3" />
+            <line x1="12" y1="2" x2="12" y2="4" />
+            <line x1="12" y1="20" x2="12" y2="22" />
+            <line x1="2" y1="12" x2="4" y2="12" />
+            <line x1="20" y1="12" x2="22" y2="12" />
+          </svg>
+        </button>
+      </div>
+      <div class="suggestions" id="suggestions"></div>
+    </div>
+
+    <div class="unit-toggle">
+      <button class="unit-btn active" data-unit="f">°F</button>
+      <button class="unit-btn" data-unit="c">°C</button>
+    </div>
+    <div class="unit-toggle">
+      <button class="speed-btn active" data-speed="mph">MPH</button>
+      <button class="speed-btn" data-speed="kph">KPH</button>
+    </div>
+  </header>
+
+  <main class="dashboard" id="dashboard">
+    <section class="card hero-card" id="heroCard">
+      <div class="hero-top">
+        <div class="location">
+          <div class="loc-name" id="locName">Loading...</div>
+          <div class="loc-time" id="locTime">—</div>
+        </div>
+        <div class="condition-badge" id="conditionBadge">—</div>
+      </div>
+      <div class="hero-main">
+        <div class="weather-art" id="weatherArt"></div>
+        <div class="temp-block">
+          <div class="temperature">
+            <span id="temp">--</span><span class="deg">°</span>
+          </div>
+          <div class="feels-like">Feels like <span id="feelsLike">--°</span></div>
+          <div class="hi-lo">
+            <span>H: <b id="tempHigh">--°</b></span>
+            <span>L: <b id="tempLow">--°</b></span>
+          </div>
+        </div>
+      </div>
+      <div class="hero-foot">
+        <div class="foot-item">
+          <span class="foot-label">Sunrise</span>
+          <span class="foot-value" id="sunrise">—</span>
+        </div>
+        <div class="foot-divider"></div>
+        <div class="foot-item">
+          <span class="foot-label">Sunset</span>
+          <span class="foot-value" id="sunset">—</span>
+        </div>
+        <div class="foot-divider"></div>
+        <div class="foot-item">
+          <span class="foot-label">Daylight</span>
+          <span class="foot-value" id="daylight">—</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card stats-card">
+      <div class="card-header">
+        <h3>Details</h3>
+      </div>
+      <div class="stats-grid">
+        <div class="stat">
+          <div class="stat-icon wind-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9.59 4.59A2 2 0 1 1 11 8H2M12.59 20.59A2 2 0 1 0 14 17H2M17.59 9.59A2 2 0 1 1 19 13H2" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Wind</div>
+            <div class="stat-value"><span id="windSpeed">--</span> <small>mph</small></div>
+            <div class="stat-sub" id="windDir">—</div>
+          </div>
+        </div>
+        <div class="stat">
+          <div class="stat-icon humid-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Humidity</div>
+            <div class="stat-value"><span id="humidity">--</span><small>%</small></div>
+            <div class="stat-bar">
+              <div class="stat-bar-fill" id="humidityBar"></div>
+            </div>
+          </div>
+        </div>
+        <div class="stat">
+          <div class="stat-icon uv-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5" />
+              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">UV Index</div>
+            <div class="stat-value"><span id="uv">--</span></div>
+            <div class="stat-sub" id="uvLabel">—</div>
+          </div>
+        </div>
+        <div class="stat">
+          <div class="stat-icon press-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Pressure</div>
+            <div class="stat-value"><span id="pressure">--</span> <small>hPa</small></div>
+            <div class="stat-sub" id="pressureTrend">—</div>
+          </div>
+        </div>
+        <div class="stat">
+          <div class="stat-icon vis-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Visibility</div>
+            <div class="stat-value"><span id="visibility">--</span> <small>mi</small></div>
+            <div class="stat-sub" id="visLabel">—</div>
+          </div>
+        </div>
+        <div class="stat">
+          <div class="stat-icon rain-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 13v8M12 15v6M8 13v8M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-label">Precipitation</div>
+            <div class="stat-value"><span id="precip">--</span><small>%</small></div>
+            <div class="stat-sub" id="precipSub">—</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card hourly-card">
+      <div class="card-header">
+        <h3>Next 24 Hours</h3>
+        <span class="card-subtitle" id="hourlyRange">—</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="hourlyChart"></canvas>
+      </div>
+      <div class="hourly-strip" id="hourlyStrip"></div>
+    </section>
+
+    <section class="card forecast-card">
+      <div class="card-header">
+        <h3>7-Day Forecast</h3>
+      </div>
+      <div class="forecast-list" id="forecastList"></div>
+    </section>
+  </main>
+
+  <div class="loader" id="loader">
+    <div class="loader-ring"></div>
+    <div class="loader-text">Summoning the skies...</div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
